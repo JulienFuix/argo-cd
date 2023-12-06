@@ -98,10 +98,19 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
 	}
 	syncOp = *state.Operation.Sync
 
+	proj, err := argo.GetAppProject(app, listersv1alpha1.NewAppProjectLister(m.projInformer.GetIndexer()), m.namespace, m.settingsMgr, m.db, context.TODO())
+	if err != nil {
+		state.Phase = common.OperationError
+		state.Message = fmt.Sprintf("Failed to load application project: %v", err)
+		return
+	}
+
 	// validates if it should fail the sync if it finds shared resources
+	log.Infof("Before la condition: %v", proj.Spec.SyncPolicy.SyncOptions.HasOption("FailOnSharedResource=true"))
 	hasSharedResource, sharedResourceMessage := hasSharedResourceCondition(app)
-	if syncOp.SyncOptions.HasOption("FailOnSharedResource=true") &&
+	if (syncOp.SyncOptions.HasOption("FailOnSharedResource=true") || proj.Spec.SyncPolicy.SyncOptions.HasOption("FailOnSharedResource=true")) &&
 		hasSharedResource {
+		log.Infof("Enter dans la condition: %v", proj.Spec.SyncPolicy.SyncOptions.HasOption("FailOnSharedResource=true"))
 		state.Phase = common.OperationFailed
 		state.Message = fmt.Sprintf("Shared resouce found: %s", sharedResourceMessage)
 		return
@@ -154,13 +163,6 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
 		if revision == "" {
 			revision = syncOp.Revision
 		}
-	}
-
-	proj, err := argo.GetAppProject(app, listersv1alpha1.NewAppProjectLister(m.projInformer.GetIndexer()), m.namespace, m.settingsMgr, m.db, context.TODO())
-	if err != nil {
-		state.Phase = common.OperationError
-		state.Message = fmt.Sprintf("Failed to load application project: %v", err)
-		return
 	}
 
 	if app.Spec.HasMultipleSources() {

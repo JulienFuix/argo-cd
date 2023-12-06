@@ -38,7 +38,7 @@ export class UserInfoOverview extends React.Component<RouteComponentProps<any>, 
                                           items: [
                                               {
                                                   iconClassName: 'fa fa-lock',
-                                                  title: 'Update Password',
+                                                  title: 'Update Passworddddddd',
                                                   action: () => (this.showChangePassword = true)
                                               }
                                           ]

@@ -1272,10 +1272,13 @@ func (ctrl *ApplicationController) processRequestedAppOperation(app *appv1.Appli
 		logCtx.Infof("Initialized new operation: %v", *app.Operation)
 	}
 
+	logCtx.Infof("La condition parent")
 	if err := argo.ValidateDestination(context.Background(), &app.Spec.Destination, ctrl.db); err != nil {
+		logCtx.Infof("La condition parent condition1")
 		state.Phase = synccommon.OperationFailed
 		state.Message = err.Error()
 	} else {
+		logCtx.Infof("La condition parent condition2")
 		ctrl.appStateManager.SyncAppState(app, state)
 	}
 
