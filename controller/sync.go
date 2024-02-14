@@ -90,7 +90,13 @@ func (m *appStateManager) SyncAppState(appProject *v1alpha1.AppProject, app *v1a
 	var source v1alpha1.ApplicationSource
 	var sources []v1alpha1.ApplicationSource
 	revisions := make([]string, 0)
-	projectSyncOp := appProject.Spec.SyncPolicy.SyncOptions
+	var projectSyncOp v1alpha1.SyncOptions
+
+	if appProject.Spec.SyncPolicy != nil {
+		projectSyncOp = appProject.Spec.SyncPolicy.SyncOptions
+	} else {
+		projectSyncOp = nil
+	}
 
 	if state.Operation.Sync == nil {
 		state.Phase = common.OperationFailed
